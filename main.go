@@ -1,12 +1,10 @@
-package main
+package updater
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -89,41 +87,42 @@ func getGit(repo, commitSha string) []byte {
 	return bodyText
 }
 
-func getCurrentStoredSha() string {
-	dat, err := ioutil.ReadFile("log")
+func getCurrentStoredSha(path string) string {
+	dat, err := ioutil.ReadFile(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 	return string(dat)
 }
 
-func main() {
-	argsWithoutProg := os.Args[1:]
+// func main() {
+// 	argsWithoutProg := os.Args[1:]
 
-	if len(argsWithoutProg) != 2 {
-		log.Fatal("Incorrect number of arguments. Try [repo, comand]")
-	}
+// 	if len(argsWithoutProg) != 2 {
+// 		log.Fatal("Incorrect number of arguments. Try [repo, comand]")
+// 	}
 
-	repo := argsWithoutProg[0]
-	command := argsWithoutProg[1]
+// 	repo := argsWithoutProg[0]
+// 	command := argsWithoutProg[1]
 
-	switch command {
-	case "check":
-		currentParentSha := getCurrentStoredSha()
-		fmt.Println(currentParentSha)
-	case "parent":
-		sha := getParentCommit(repo)
-		fmt.Println(sha)
-	case "compare":
-		currentParentSha := getCurrentStoredSha()
-		sha := getParentCommit(repo)
-		shouldUpdate := compareVersionsBySha(sha, currentParentSha)
-		fmt.Println(shouldUpdate)
-	default:
-		fmt.Println("No Command Recognized")
-	}
+// 	storePath := "log"
 
-}
+// 	switch command {
+// 	case "check":
+// 		currentParentSha := getCurrentStoredSha(storePath)
+// 		fmt.Println(currentParentSha)
+// 	case "parent":
+// 		sha := getParentCommit(repo)
+// 		fmt.Println(sha)
+// 	case "compare":
+// 		currentParentSha := getCurrentStoredSha(storePath)
+// 		sha := getParentCommit(repo)
+// 		shouldUpdate := compareVersionsBySha(sha, currentParentSha)
+// 		fmt.Println(shouldUpdate)
+// 	default:
+// 		fmt.Println("No Command Recognized")
+// 	}
+// }
 
 func compareVersionsBySha(sha, currentSha string) bool {
 	if sha == currentSha {
@@ -156,4 +155,26 @@ func getParentCommit(repo string) string {
 	}
 	return gitPayload.Parents[0].Sha
 
+}
+
+// Public functions
+
+// CheckCurrentStoredVersion checks the stored value
+func CheckCurrentStoredVersion(storePath string) string {
+	currentParentSha := getCurrentStoredSha(storePath)
+	return currentParentSha
+}
+
+// CheckCurrentGithubParent checks the Github value
+func CheckCurrentGithubParent(repo string) string {
+	sha := getParentCommit(repo)
+	return sha
+}
+
+// CompareStoredVerionAndGihubVersion compares the stored and fetched values
+func CompareStoredVerionAndGihubVersion(repo, storePath string) bool {
+	currentParentSha := getCurrentStoredSha(storePath)
+	sha := getParentCommit(repo)
+	shouldUpdate := compareVersionsBySha(sha, currentParentSha)
+	return shouldUpdate
 }
